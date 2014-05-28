@@ -47,7 +47,8 @@ public final class Log {
 
     private final Class<?> clazz;
     private final String className;
-    private final PrintStream out = System.err;
+    private final PrintStream out = System.out;
+    private final PrintStream err = System.err;
 
     /**
      * Private constructor
@@ -86,37 +87,38 @@ public final class Log {
      */
     private void emit(final LogLevel level, final Throwable throwable, final Object... parts) {
         if (isEnabled(level)) {
-            synchronized (this) {
-                this.out.print(level.name());
-                this.out.print('\t');
-                this.out.print(getTimestamp());
-                this.out.print('\t');
-                this.out.print(this.className);
-                this.out.print('\t');
+        	PrintStream log = level == LogLevel.ERROR ? this.err : this.out;
+            synchronized (log) {
+            	log.print(level.name());
+            	log.print('\t');
+            	log.print(getTimestamp());
+            	log.print('\t');
+            	log.print(this.className);
+            	log.print('\t');
 
                 for (final Object part : parts) {
                     if (part != null && part.getClass().isArray()) {
                         final Class<?> component = part.getClass().getComponentType();
-                        if (component.equals(Boolean.TYPE))        this.out.print(Arrays.toString( (boolean[]) part));
-                        else if (component.equals(Byte.TYPE))      this.out.print(Arrays.toString( (byte[]) part));
-                        else if (component.equals(Character.TYPE)) this.out.print(Arrays.toString( (char[]) part));
-                        else if (component.equals(Double.TYPE))    this.out.print(Arrays.toString( (double[]) part));
-                        else if (component.equals(Float.TYPE))     this.out.print(Arrays.toString( (float[]) part));
-                        else if (component.equals(Integer.TYPE))   this.out.print(Arrays.toString( (int[]) part));
-                        else if (component.equals(Long.TYPE))      this.out.print(Arrays.toString( (long[]) part));
-                        else if (component.equals(Short.TYPE))     this.out.print(Arrays.toString( (short[]) part));
-                        else this.out.print(Arrays.toString( (Object[]) part));
+                        if (component.equals(Boolean.TYPE))        log.print(Arrays.toString( (boolean[]) part));
+                        else if (component.equals(Byte.TYPE))      log.print(Arrays.toString( (byte[]) part));
+                        else if (component.equals(Character.TYPE)) log.print(Arrays.toString( (char[]) part));
+                        else if (component.equals(Double.TYPE))    log.print(Arrays.toString( (double[]) part));
+                        else if (component.equals(Float.TYPE))     log.print(Arrays.toString( (float[]) part));
+                        else if (component.equals(Integer.TYPE))   log.print(Arrays.toString( (int[]) part));
+                        else if (component.equals(Long.TYPE))      log.print(Arrays.toString( (long[]) part));
+                        else if (component.equals(Short.TYPE))     log.print(Arrays.toString( (short[]) part));
+                        else log.print(Arrays.toString( (Object[]) part));
                     }
                     else {
-                        this.out.print(part);
+                    	log.print(part);
                     }
                 }
 
-                this.out.println();
+                log.println();
 
                 // Print out the exception if there is one
                 if (throwable != null) {
-                    throwable.printStackTrace(this.out);
+                    throwable.printStackTrace(log);
                 }
             }
         }
